@@ -151,6 +151,7 @@ const resolvers = {
       await CommandHistory.create({
         userId: user.id,
         commandId: command.id,
+        identifier: user.iat,
       });
 
       const now = new Date()
@@ -158,6 +159,7 @@ const resolvers = {
       const commandsHistory = await CommandHistory.findAll({
           where: {
               userId: user.id,
+              identifier: user.iat,
               createdAt: {
                   $gte: moment(now).subtract(1, "minutes").toDate(),
                   $lte: now
