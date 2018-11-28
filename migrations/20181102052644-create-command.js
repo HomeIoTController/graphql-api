@@ -17,6 +17,15 @@ module.exports = {
       to: {
         type: Sequelize.STRING
       },
+      type: {
+        type: Sequelize.STRING
+      },
+      valueFrom: {
+        type: Sequelize.STRING
+      },
+      valueTo: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

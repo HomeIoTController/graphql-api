@@ -1,6 +1,6 @@
 'use strict'
 
-const { User, Command, CommandHistory } = require('../models')
+const { User, Command, CommandHistory, EEGData } = require('../models')
 const bcrypt = require('bcrypt')
 const jsonwebtoken = require('jsonwebtoken')
 const moment = require('moment')
@@ -44,6 +44,7 @@ const resolvers = {
       }
 
       const user = await User.create({
+        listenerCommand: "hello",
         username,
         email,
         password: await bcrypt.hash(password, 10)
@@ -79,7 +80,7 @@ const resolvers = {
       )
     },
 
-    async updateCommands (_, { froms, tos, listenerCommand }, { user }) {
+    async updateCommands (_, { froms, tos, types, valuesFrom, valuesTo, listenerCommand }, { user }) {
 
       // Make sure user is logged in
       if (!user) {
@@ -90,7 +91,11 @@ const resolvers = {
         throw new Error('Listener command must not be null!')
       }
 
-      if (!froms || !tos || froms.length !== tos.length) {
+      if (!froms || !tos || !types || !valuesFrom || !valuesTo ||
+        froms.length !== tos.length ||
+        froms.length !== types.length ||
+        froms.length !== valuesFrom.length ||
+        froms.length !== valuesTo.length) {
         throw new Error('From and to must have same size!')
       }
 
@@ -103,11 +108,17 @@ const resolvers = {
       for (let i = 0; i < froms.length; i++) {
         const from = froms[i];
         const to = tos[i];
+        const valueFrom = valuesFrom[i];
+        const valueTo = valuesTo[i];
+        const type = types[i];
 
         await Command.create({
           userId: user.id,
           from,
           to,
+          type,
+          valueFrom,
+          valueTo
         });
       }
 
@@ -129,9 +140,24 @@ const resolvers = {
       });
     },
 
-    async sendCommand (_, { fromCommand }, { user, philipsHueClient }) {
+    async sendEEGData(_, eegData, { user, philipsHueClient }) {
       if (!user) {
         throw new Error('No user with that email')
+      }
+      eegData.userId = user.id;
+
+      await EEGData.create(eegData);
+
+      return "EEG Data saved!";
+    },
+
+    async sendCommand (_, { fromCommand, type, valueFrom, valueTo }, { user, philipsHueClient }) {
+      if (!user) {
+        throw new Error('No user with that email')
+      }
+
+      if (!fromCommand || !type){
+        throw new Error('fromCommand and type are mandatory!');
       }
 
       if (!philipsHueClient.lights){
@@ -143,7 +169,10 @@ const resolvers = {
       const command = await Command.findOne({
         where: {
           userId: user.id,
-          from: fromCommand
+          from: fromCommand,
+          type,
+          valueFrom,
+          valueTo,
         }
       });
       if (!command) return "Failed to find command!";
@@ -186,21 +215,10 @@ const resolvers = {
 
       const nameValue = command.to.replace(/ /g,'').split("=")
 
-      // Check if the command being executed has a number, otherwise do not balance it
-      /*if (!isNaN(nameValue[1])) {
-        let total = 0;
-        console.log(commandsHistoryMap[nameValue[0]])
-        Object.keys(commandsHistoryMap[nameValue[0]]).forEach(val => {
-          total += Number(val) *
-        });
-        total = total / Object.keys(commandsHistoryMap[nameValue[0]]).length;
-        eval('light.'+nameValue[0]+'='+total)
-      } else {*/
       await Promise.all(lights.map(async (light) => {
-        eval('light.'+command.to)
+        eval(command.to)
         await philipsHueClient.lights.save(light);
       }));
-      //}
 
       return "Command executed!";
     },

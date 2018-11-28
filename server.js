@@ -1,7 +1,7 @@
 'use strict'
 
 const express = require('express')
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser-graphql')
 const { graphqlExpress } = require('apollo-server-express')
 const schema = require('./data/schema')
 const jwt = require('express-jwt')
@@ -26,7 +26,7 @@ function setupServer(client) {
   // graphql endpoint
   app.use(
     '/graphql',
-    bodyParser.json(),
+    bodyParser.graphql(),
     auth,
     graphqlExpress(req => ({
       schema,

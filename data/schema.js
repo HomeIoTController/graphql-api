@@ -17,6 +17,9 @@ const typeDefs = `
     userId: Int!
     from: String!
     to: String!
+    type: String!
+    valueTo: String
+    valueFrom: String
   }
 
   type Query {
@@ -27,8 +30,9 @@ const typeDefs = `
   type Mutation {
     signup (username: String!, email: String!, password: String!): String
     login (email: String!, password: String!): String
-    updateCommands (froms: [String]!, tos: [String]!, listenerCommand: String!): [Command]
-    sendCommand (fromCommand: String!): String
+    updateCommands (froms: [String]!, tos: [String]!, types: [String]!, valuesFrom: [String]!, valuesTo: [String]!, listenerCommand: String!): [Command]
+    sendCommand (fromCommand: String!, type: String!, valueFrom: String, valueTo: String): String
+    sendEEGData (time: String!, theta: Int!, lowAlpha: Int!, highAlpha: Int!, lowBeta: Int!, highBeta: Int!, lowGamma: Int!, midGamma: Int!, attention: Int!, meditation: Int!, blink: Int!): String
   }
 `
 
