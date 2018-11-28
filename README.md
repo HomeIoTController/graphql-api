@@ -41,3 +41,7 @@ npm start
 ```
 
 * The server will be running on [http://localhost:3000/api](http://localhost:3000/api).
+
+## How to create a new DB entity
+
+* Example: `sequelize model:generate --name EEGData --attributes userId:integer,time:date,theta:integer,lowAlpha:integer,highAlpha:integer,lowBeta:integer,highBeta:integer,lowGamma:integer,midGamma:integer,attention:integer,meditation:integer,blink:integer --force`
