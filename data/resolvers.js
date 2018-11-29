@@ -171,8 +171,8 @@ const resolvers = {
           userId: user.id,
           from: fromCommand,
           type,
-          valueFrom,
-          valueTo,
+          valueFrom: valueFrom ? valueFrom : "",
+          valueTo: valueTo ? valueTo : "",
         }
       });
       if (!command) return "Failed to find command!";
@@ -199,10 +199,10 @@ const resolvers = {
           }]
       });
 
-      const commandsHistoryMap = {};
+      /*const commandsHistoryMap = {};
 
       // Create a map with previously executed commands in the last minute
-      commandsHistory.forEach(commandHistory => {
+       commandsHistory.forEach(commandHistory => {
         const nameValue = commandHistory.Command.to.replace(/ /g,'').split("=")
         if (!commandsHistoryMap[nameValue[0]]) {
           commandsHistoryMap[nameValue[0]] = {}
@@ -213,9 +213,10 @@ const resolvers = {
         commandsHistoryMap[nameValue[0]][nameValue[1]] += 1
       });
 
-      const nameValue = command.to.replace(/ /g,'').split("=")
+      const nameValue = command.to.replace(/ /g,'').split("=")*/
 
       await Promise.all(lights.map(async (light) => {
+        console.log("light: ", light)
         eval(command.to)
         await philipsHueClient.lights.save(light);
       }));

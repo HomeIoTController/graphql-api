@@ -91,7 +91,9 @@ const setupHUE = (username) => {
         console.log(error.stack);
       });
     })
-  })
+  }).catch(err => {
+    console.log(err)
+  });
 }
 
 setupHUE(process.env.HUE_USER)
