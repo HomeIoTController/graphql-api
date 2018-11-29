@@ -164,7 +164,7 @@ const resolvers = {
         throw new Error('Philips Hue not connected!')
       }
 
-      const lights = await philipsHueClient.lights.getAll(); //).find(light => light.uniqueId === '00:17:88:01:03:89:c2:2f-0b' );
+      const lights = await philipsHueClient.lights.getAll();
 
       const command = await Command.findOne({
         where: {

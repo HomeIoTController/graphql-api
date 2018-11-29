@@ -42,28 +42,56 @@ function setupServer(client) {
   })
 }
 
-// Philips Hue config
-huejay.discover().then(bridges => {
+const setupHUE = (username) => {
+  // Philips Hue config
+  huejay.discover().then(bridges => {
 
-  console.log("Started Philips Hue config!")
+    console.log("Started Philips Hue config!")
 
-  if (bridges.length === 0) return setupServer({})
+    if (bridges.length === 0) return setupServer({})
 
-  for (let bridge of bridges) {
-    console.log(`Id: ${bridge.id}, IP: ${bridge.ip}`);
-  }
+    for (let bridge of bridges) {
+      console.log(`Id: ${bridge.id}, IP: ${bridge.ip}`);
+    }
 
-  let client = new huejay.Client({
-    host: bridges[0].ip,
-    username: 'IGPBxiLLsCmI4bHSEH0P0KGsoRKeK4kI8Olswnup'
+    let client = new huejay.Client({
+      host: bridges[0].ip,
+      username: username
+    })
+
+    client.users.getAll()
+    .then(users => {
+      for (let user of users) {
+        console.log(`Username: ${user.username}`);
+      }
+
+      client.bridge.ping().then(() => {
+        console.log('Successful connection to Philips Bridge');
+        setupServer(client)
+      }).catch(err => {
+        console.log("Connection error with Philips Bridge!");
+      })
+    }).catch(err => {
+      let user = new client.users.User;
+
+      // Optionally configure a device type / agent on the user
+      user.deviceType = 'huejay'; // Default is 'huejay'
+
+      client.users.create(user)
+      .then(user => {
+        console.log(`New user created - Username: ${user.username}`);
+        setupHUE(user.username);
+      })
+      .catch(error => {
+        if (error instanceof huejay.Error && error.type === 101) {
+          console.log(`Link button not pressed. Try again...`);
+          setupHUE(process.env.HUE_USER);
+        }
+
+        console.log(error.stack);
+      });
+    })
   })
+}
 
-  client.bridge.ping().then(() => {
-    console.log('Successful connection to Philips Bridge');
-
-    setupServer(client)
-
-  }).catch(err => {
-    console.log("Connection error with Philips Bridge!");
-  })
-})
+setupHUE(process.env.HUE_USER)
