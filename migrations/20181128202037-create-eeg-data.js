@@ -44,6 +44,9 @@ module.exports = {
       blink: {
         type: Sequelize.INTEGER
       },
+      feelingLabel: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

@@ -146,6 +146,9 @@ const resolvers = {
       }
       eegData.userId = user.id;
 
+      if (!eegData.feelingLabel || eegData.feelingLabel === "") {
+        eegData.feelingLabel = "?"
+      }
       await EEGData.create(eegData);
 
       return "EEG Data saved!";

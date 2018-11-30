@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     midGamma: DataTypes.INTEGER,
     attention: DataTypes.INTEGER,
     meditation: DataTypes.INTEGER,
-    blink: DataTypes.INTEGER
+    blink: DataTypes.INTEGER,
+    feelingLabel: DataTypes.STRING
   }, {});
   EEGData.associate = function(models) {
     // associations can be defined here
