@@ -7,7 +7,7 @@
 * Clone the project repository by running the command below if you use HTTPS
 
 ```bash
-git clone https://github.com/PhilipsHUEController/api.git
+git clone https://github.com/PhilipsHUEController/graphql-api.git
 ```
 
 * After cloning, run:
