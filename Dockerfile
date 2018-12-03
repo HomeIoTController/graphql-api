@@ -1,6 +1,11 @@
 FROM node:7.7.1
 MAINTAINER Daniel Marchena <danielmapar@gmail.com>
 
+ENV DB_HOST graphql-db
+ENV DB_USERNAME adaptive_user
+ENV DB_PASSWORD adaptive_pw
+ENV DB_NAME adaptive_db
+ENV DB_PORT 3306
 
 # Create/Set the working directory
 RUN mkdir /app
