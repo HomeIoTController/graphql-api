@@ -129,8 +129,11 @@ function createKafkaConsumer(kafkaClient) {
   });
 
   consumer.on('error', function (err) {
-    console.log(`Retrying to consume Kafka topic: ${topic}`);
-    createKafkaConsumer(kafkaClient)
+    // Wait 5 minutes to retry checking Kafka topic
+    setTimeout(() => {
+      console.log(`Retrying to consume Kafka topic: ${topic}`);
+      createKafkaConsumer(kafkaClient)
+    }, 5000);
   });
 }
 

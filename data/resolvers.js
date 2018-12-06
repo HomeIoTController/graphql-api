@@ -1,6 +1,6 @@
 'use strict'
 
-const { User, Command, CommandHistory, EEGData } = require('../models')
+const { User, Command, CommandHistory } = require('../models')
 const bcrypt = require('bcrypt')
 const jsonwebtoken = require('jsonwebtoken')
 const moment = require('moment')
@@ -152,7 +152,7 @@ const resolvers = {
 
       const message = JSON.stringify(eegData);
       const kafkaTopic = process.env.KAFKA_TOPIC;
-      
+
       kafkaProducer.send([
         { topic: kafkaTopic, partition: 0, messages: [message], attributes: 0 }
       ], (err, result) => {
