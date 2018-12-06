@@ -140,7 +140,7 @@ const resolvers = {
       });
     },
 
-    async sendEEGData(_, eegData, { user, philipsHueClient }) {
+    async sendEEGData(_, eegData, { user, kafkaProducer }) {
       if (!user) {
         throw new Error('No user with that email')
       }
@@ -149,9 +149,17 @@ const resolvers = {
       if (!eegData.feelingLabel || eegData.feelingLabel === "") {
         eegData.feelingLabel = "?"
       }
-      await EEGData.create(eegData);
 
-      return "EEG Data saved!";
+      const message = JSON.stringify(eegData);
+      const kafkaTopic = process.env.KAFKA_TOPIC;
+      
+      kafkaProducer.send([
+        { topic: kafkaTopic, partition: 0, messages: [message], attributes: 0 }
+      ], (err, result) => {
+        console.log("err: ", err);
+        console.log("result: ", result)
+      });
+      //await EEGData.create(eegData);
     },
 
     async sendCommand (_, { fromCommand, type, valueFrom, valueTo }, { user, philipsHueClient }) {
@@ -220,8 +228,8 @@ const resolvers = {
 
       await Promise.all(lights.map(async (light) => {
         console.log("light: ", light)
-        eval(command.to)
-        await philipsHueClient.lights.save(light);
+        //eval(command.to)
+        //await philipsHueClient.lights.save(light);
       }));
 
       return "Command executed!";

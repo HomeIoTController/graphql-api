@@ -6,6 +6,10 @@ ENV DB_USERNAME adaptive_user
 ENV DB_PASSWORD adaptive_pw
 ENV DB_NAME adaptive_db
 ENV DB_PORT 3306
+ENV KAFKA_SERVER kafka_server
+ENV KAFKA_PORT 9092
+ENV KAFKA_TOPIC eeg
+ENV KAFKA_DEBUG true
 
 # Create/Set the working directory
 RUN mkdir /app
