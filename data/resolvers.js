@@ -160,6 +160,8 @@ const resolvers = {
         console.log("result: ", result)
       });
       //await EEGData.create(eegData);
+
+      return "Saved EEG data!";
     },
 
     async sendCommand (_, { fromCommand, type, valueFrom, valueTo }, { user, philipsHueClient }) {
