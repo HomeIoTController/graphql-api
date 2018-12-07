@@ -22,6 +22,27 @@ const typeDefs = `
     valueFrom: String
   }
 
+  input EEGData {
+    time: String
+    theta: Int!
+    lowAlpha: Int!
+    highAlpha: Int!
+    lowBeta: Int!
+    highBeta: Int!
+    lowGamma: Int!
+    midGamma: Int!
+    attention: Int!
+    meditation: Int!
+    blink: Int!
+    feelingLabel: String
+  }
+
+  type EEGClassification {
+    SMO: String,
+    RANDOM_FOREST: String,
+    MULTILAYER_PERCEPTRON: String
+  }
+
   type Query {
     me: User
     commands: [Command]
@@ -32,7 +53,8 @@ const typeDefs = `
     login (email: String!, password: String!): String
     updateCommands (froms: [String]!, tos: [String]!, types: [String]!, valuesFrom: [String]!, valuesTo: [String]!, listenerCommand: String!): [Command]
     sendCommand (fromCommand: String!, type: String!, valueFrom: String, valueTo: String): String
-    sendEEGData (time: String!, theta: Int!, lowAlpha: Int!, highAlpha: Int!, lowBeta: Int!, highBeta: Int!, lowGamma: Int!, midGamma: Int!, attention: Int!, meditation: Int!, blink: Int!, feelingLabel: String): String
+    sendEEGData (data: EEGData!): String
+    classifyEEGData (data: EEGData!): EEGClassification
   }
 `
 

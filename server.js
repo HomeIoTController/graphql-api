@@ -125,7 +125,7 @@ function createKafkaConsumer(kafkaClient) {
   const consumer = new kafka.Consumer(kafkaClient, topics, options);
 
   consumer.on('message', function (message) {
-    console.log("Message: ", message);
+    //console.log("Message: ", message);
   });
 
   consumer.on('error', function (err) {

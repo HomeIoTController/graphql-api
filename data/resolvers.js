@@ -3,6 +3,7 @@
 const { User, Command, CommandHistory } = require('../models')
 const bcrypt = require('bcrypt')
 const jsonwebtoken = require('jsonwebtoken')
+const axios = require('axios');
 const moment = require('moment')
 
 require('dotenv').config()
@@ -84,7 +85,7 @@ const resolvers = {
 
       // Make sure user is logged in
       if (!user) {
-        throw new Error('You are not authenticated!')
+        throw new Error('User not authenticated!')
       }
 
       if (!listenerCommand) {
@@ -142,7 +143,7 @@ const resolvers = {
 
     async sendEEGData(_, eegData, { user, kafkaProducer }) {
       if (!user) {
-        throw new Error('No user with that email')
+        throw new Error('User not authenticated!')
       }
       eegData.userId = user.id;
 
@@ -156,17 +157,28 @@ const resolvers = {
       kafkaProducer.send([
         { topic: kafkaTopic, partition: 0, messages: [message], attributes: 0 }
       ], (err, result) => {
-        console.log("err: ", err);
-        console.log("result: ", result)
+        //console.log("Kafka Producer - Error: ", err);
+        //console.log("Kafka Producer - Result: ", result)
       });
-      //await EEGData.create(eegData);
 
       return "Saved EEG data!";
     },
 
+    async classifyEEGData(_, eeg, { user }) {
+      if (!user) {
+        throw new Error('User not authenticated!')
+      }
+      let eegData = eeg.data;
+      eegData.userId = user.id;
+
+      const eegAPI = `http://${process.env.EEG_API}:${process.env.EEG_API_PORT}`;
+      return (await axios.post(`${eegAPI}/eeg/classify`, eegData)).data;
+
+    },
+
     async sendCommand (_, { fromCommand, type, valueFrom, valueTo }, { user, philipsHueClient }) {
       if (!user) {
-        throw new Error('No user with that email')
+        throw new Error('User not authenticated!')
       }
 
       if (!fromCommand || !type){

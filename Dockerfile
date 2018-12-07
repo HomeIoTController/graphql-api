@@ -6,6 +6,8 @@ ENV DB_USERNAME adaptive_user
 ENV DB_PASSWORD adaptive_pw
 ENV DB_NAME adaptive_db
 ENV DB_PORT 3306
+ENV EEG_API eeg-brainwave-api
+ENV EEG_API_PORT 8080
 ENV KAFKA_SERVER kafka-server
 ENV KAFKA_PORT 9092
 ENV KAFKA_TOPIC eeg
