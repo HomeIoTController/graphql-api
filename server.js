@@ -3,15 +3,15 @@
 const express = require('express')
 const bodyParser = require('body-parser-graphql')
 const { graphqlExpress } = require('apollo-server-express')
-const schema = require('./data/schema')
+const schema = require('./src/schema')
 const jwt = require('express-jwt')
 const cors = require('cors')
 const huejay = require('huejay')
 const kafka = require('kafka-node')
 
-require('dotenv').config()
+require('dotenv').config() 
 
-const PORT = 3000
+const API_PORT = process.env.API_PORT ? process.env.API_PORT : 3000
 
 // create our express app
 const app = express()
@@ -53,8 +53,8 @@ function setupServer(client) {
       }))
     )
 
-    app.listen(PORT, () => {
-      console.log(`The server is running on http://localhost:${PORT}/graphql`)
+    app.listen(API_PORT, () => {
+      console.log(`The server is running on http://localhost:${API_PORT}/graphql`)
     })
   });
 
