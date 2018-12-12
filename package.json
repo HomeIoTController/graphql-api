@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node_modules/.bin/nodemon -w ./data -w ./config -w ./models -w ./.env -w ./.sequelizerc -w ./server.js server.js"
+    "start": "node_modules/.bin/nodemon -w ./src -w ./config -w ./models -w ./.env -w ./.sequelizerc -w ./server.js server.js"
   },
   "keywords": [],
   "author": "",

@@ -71,7 +71,7 @@ module.exports =  {
             { topic: kafkaTopic, partition: 0, messages: [message], attributes: 0 }
           ], (err, result) => {
             if (err) reject(err);
-            else resolve(result)
+            else resolve("Saved!") 
           });
         }));
       },
@@ -166,8 +166,6 @@ module.exports =  {
         });
 
         const now = new Date()
-
-        console.log("teste")
 
         const commandsHistory = await CommandHistory.findAll({
             where: {
