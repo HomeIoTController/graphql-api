@@ -1,5 +1,7 @@
 'use strict'
 
+require('dotenv').config()
+
 const express = require('express')
 const bodyParser = require('body-parser-graphql')
 const { graphqlExpress } = require('apollo-server-express')
@@ -7,37 +9,24 @@ const schema = require('./src/schema')
 const jwt = require('express-jwt')
 const cors = require('cors')
 const huejay = require('huejay')
-const kafka = require('kafka-node')
-
-require('dotenv').config() 
+const { getKafkaServiceInstance } = require('./src/kafkaService')
 
 const API_PORT = process.env.API_PORT ? process.env.API_PORT : 3000
+
+const kafkaService = getKafkaServiceInstance();
 
 // create our express app
 const app = express()
 app.use(cors())
 
-function setupServer(client) {
+function setupServer(philipsHueClient) {
   // auth middleware
   const auth = jwt({
     secret: process.env.JWT_SECRET,
     credentialsRequired: false
-  })
+  }); 
 
-  const kafkaServer = process.env.KAFKA_SERVER ? process.env.KAFKA_SERVER : 'kafka_server';
-  const kafkaPort = process.env.KAFKA_PORT ? process.env.KAFKA_PORT : '9092';
-  const kafkaClient = new kafka.KafkaClient({
-    kafkaHost: `${kafkaServer}:${kafkaPort}`
-  });
-  const kafkaProducer = new kafka.Producer(kafkaClient);
-
-  if (process.env.KAFKA_DEBUG) {
-    createKafkaConsumer(kafkaClient);
-  }
-
-  kafkaProducer.on('ready', () => {
-    console.log("Kafka producer is connected!");
-
+  kafkaService.onReady().then(() => {
     // graphql endpoint
     app.use(
       '/graphql',
@@ -47,23 +36,18 @@ function setupServer(client) {
         schema,
         context: {
           user: req.user,
-          kafkaProducer,
-          philipsHueClient: client
+          philipsHueClient
         }
       }))
-    )
+    );
 
     app.listen(API_PORT, () => {
       console.log(`The server is running on http://localhost:${API_PORT}/graphql`)
     })
   });
-
-  kafkaProducer.on('error', (err) => {
-    console.log('Kafka Producer Error: ', err);
-  });
 }
 
-const setupHUE = (username) => {
+function setupHUE(username) {
   // Philips Hue config
   huejay.discover().then(bridges => {
 
@@ -90,6 +74,7 @@ const setupHUE = (username) => {
         console.log('Successful connection to Philips Bridge');
         setupServer(client)
       }).catch(err => {
+        console.log(err)
         console.log("Connection error with Philips Bridge!");
       })
     }).catch(err => {
@@ -114,26 +99,6 @@ const setupHUE = (username) => {
     })
   }).catch(err => {
     console.log(err)
-  });
-}
-
-function createKafkaConsumer(kafkaClient) {
-  const topic = process.env.KAFKA_TOPIC;
-  const topics = [{ topic: topic, partition: 0 }];
-  const options = { autoCommit: false, fetchMaxWaitMs: 1000, fetchMaxBytes: 1024 * 1024 };
-
-  const consumer = new kafka.Consumer(kafkaClient, topics, options);
-
-  consumer.on('message', function (message) {
-    //console.log("Message: ", message);
-  });
-
-  consumer.on('error', function (err) {
-    // Wait 5 minutes to retry checking Kafka topic
-    setTimeout(() => {
-      console.log(`Retrying to consume Kafka topic: ${topic}`);
-      createKafkaConsumer(kafkaClient)
-    }, 5000);
   });
 }
 

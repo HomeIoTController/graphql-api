@@ -4,6 +4,7 @@ const moment = require('moment')
 const axios = require('axios')
 
 const { User, Command, CommandHistory } = require('../../models')
+const { getKafkaServiceInstance } = require('../kafkaService');
 
 module.exports =  {
   // Handle user signup
@@ -56,7 +57,7 @@ module.exports =  {
       throw new Error('You are not authenticated!')
     }
     return  {
-      async sendEEGData(eegData, { kafkaProducer }) {
+      async sendEEGData({ data: eegData }) {
         eegData.userId = user.id;
 
         if (!eegData.feelingLabel || eegData.feelingLabel === "") {
@@ -67,11 +68,13 @@ module.exports =  {
         const kafkaTopic = process.env.KAFKA_TOPIC;
 
         return (await new Promise(function(resolve, reject) {
+          const kafkaProducer = getKafkaServiceInstance().producer;
+
           kafkaProducer.send([
             { topic: kafkaTopic, partition: 0, messages: [message], attributes: 0 }
           ], (err, result) => {
             if (err) reject(err);
-            else resolve("Saved!") 
+            else resolve("Saved!")
           });
         }));
       },
