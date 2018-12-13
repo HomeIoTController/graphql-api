@@ -3,8 +3,9 @@ const jsonwebtoken = require('jsonwebtoken')
 const moment = require('moment')
 const axios = require('axios')
 
-const { User, Command, CommandHistory } = require('../../models')
+const { User, PID, Command, CommandHistory } = require('../../models')
 const { getKafkaServiceInstance } = require('../kafkaService');
+const { getPIDControllerInstance } = require('../PIDController');
 
 module.exports =  {
   // Handle user signup
@@ -20,6 +21,16 @@ module.exports =  {
       email,
       password: await bcrypt.hash(password, 10)
     })
+
+    await PID.create({
+      userId: user.id,
+      kp: 1,
+      ki: 1,
+      kd: 1,
+      k: 0,
+      setpoint: 50, // 50% light
+      timeInterval: 60 // 60 seconds
+    });
 
     // Return json web token
     return jsonwebtoken.sign(
@@ -57,6 +68,23 @@ module.exports =  {
       throw new Error('You are not authenticated!')
     }
     return  {
+      async updatePID({ kp, ki, kd, k, setpoint, timeInterval }) {
+        const pid = await PID.update({
+          kp,
+          ki,
+          kd,
+          k,
+          setpoint,
+          timeInterval
+        },
+        {
+          where: {
+            userId: user.id
+          }
+        });
+        return await PID.findByPk(pid[0]);
+      },
+
       async sendEEGData({ data: eegData }) {
         eegData.userId = user.id;
 
@@ -80,15 +108,10 @@ module.exports =  {
       },
 
       async updateCommands ({ froms, tos, types, valuesFrom, valuesTo, listenerCommand }) {
-        if (!listenerCommand) {
-          throw new Error('Listener command must not be null!')
-        }
-
-        if (!froms || !tos || !types || !valuesFrom || !valuesTo ||
-          froms.length !== tos.length ||
-          froms.length !== types.length ||
-          froms.length !== valuesFrom.length ||
-          froms.length !== valuesTo.length) {
+        if (froms.length !== tos.length ||
+            froms.length !== types.length ||
+            froms.length !== valuesFrom.length ||
+            froms.length !== valuesTo.length) {
           throw new Error('From and to must have same size!')
         }
 
@@ -147,10 +170,6 @@ module.exports =  {
 
         const lights = await philipsHueClient.lights.getAll();
 
-        if (!fromCommand || !type){
-          throw new Error('fromCommand and type are mandatory!');
-        }
-
         const command = await Command.findOne({
           where: {
             userId: user.id,
@@ -162,31 +181,41 @@ module.exports =  {
         });
         if (!command) throw new Error('Failed to find command!')
 
-        await CommandHistory.create({
-          userId: user.id,
-          commandId: command.id,
-          identifier: user.iat,
-        });
-
         const now = new Date()
+
+        const pidParameters = await PID.findOne({
+          where: { userId: user.id }
+        });
+        if (!pidParameters) throw new Error('Failed to find PID parameters!')
 
         const commandsHistory = await CommandHistory.findAll({
             where: {
                 userId: user.id,
-                identifier: user.iat,
                 createdAt: {
-                    $gte: moment(now).subtract(1, "minutes").toDate(),
+                    $gte: moment(now).subtract(pidParameters.timeInterval, "seconds").toDate(),
                     $lte: now
                 }
             },
-            include: [{
-              model: Command
-            }]
+            order: [
+              ['createdAt', 'DESC'],
+            ]
+        });
+
+        let balancedCommand = command.to;
+        if (commandsHistory.length > 0) {
+          const PIDController = getPIDControllerInstance();
+          balancedCommand = PIDController.getBalancedCommand(command, commandsHistory, pidParameters.dataValues);
+        }
+
+        await CommandHistory.create({
+          userId: user.id,
+          from: command.from,
+          to: balancedCommand
         });
 
         await Promise.all(lights.map(async (light) => {
-          console.log("light: ", light)
-          //eval(command.to)
+          // console.log("light: ", light)
+          //eval(balancedCommand)
           //await philipsHueClient.lights.save(light);
         }));
 

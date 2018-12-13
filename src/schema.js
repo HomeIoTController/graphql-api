@@ -3,6 +3,7 @@
 const { makeExecutableSchema } = require('graphql-tools')
 const resolvers = require('./resolvers')
 
+const PID = require('./types/PID')
 const Command = require('./types/Command')
 const EEGClassification = require('./types/EEGClassification')
 const User = require('./types/User')
@@ -16,6 +17,7 @@ const EEGData = require('./inputs/EEGData')
 const typeDefs = `
 ${EEGData}
 ${Command}
+${PID}
 ${EEGClassification}
 ${UserOps}
 ${User}

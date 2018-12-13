@@ -7,5 +7,6 @@ type User {
   commands: [Command]
   command (fromCommand: String!, type: String!, valueFrom: String, valueTo: String): Command
   latestEEGClassification: EEGClassification
+  pid: PID
 }
 `;

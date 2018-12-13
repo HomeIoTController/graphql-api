@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('CommandHistories', {
+    return queryInterface.createTable('PIDs', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,11 +11,23 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER
       },
-      from: {
-        type: Sequelize.STRING
+      kp: {
+        type: Sequelize.DOUBLE
       },
-      to: {
-        type: Sequelize.STRING
+      ki: {
+        type: Sequelize.DOUBLE
+      },
+      kd: {
+        type: Sequelize.DOUBLE
+      },
+      k: {
+        type: Sequelize.DOUBLE
+      },
+      setpoint: {
+        type: Sequelize.DOUBLE
+      },
+      timeInterval: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
@@ -28,6 +40,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('CommandHistories');
+    return queryInterface.dropTable('PIDs');
   }
 };

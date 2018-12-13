@@ -22,11 +22,16 @@ class KafkaService {
 
   async onReady() {
     return await (new Promise((resolve, reject) => {
-      while (!this.isReady) {
-        await (this.sleep(100))
+      const run = () => {
+        return this.sleep(100).then(() => {
+          if (!this.isReady) {
+            return run();
+          }
+          return resolve(true);
+        })
       }
-      resolve(true);
-    }))
+      return run();
+    }));
   }
 
   createClient() {

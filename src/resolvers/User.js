@@ -1,5 +1,5 @@
 const kafka = require('kafka-node')
-const { User, Command } = require('../../models')
+const { User, Command, PID } = require('../../models')
 
 const { getKafkaServiceInstance } = require('../kafkaService');
 
@@ -88,5 +88,17 @@ module.exports = {
         });
       });
     }));
-  }
+  },
+
+  async pid(user) {
+    const pid = await PID.findOne({
+      where: {
+        userId: user.id
+      }
+    });
+
+    if (!pid) throw new Error('Failed to find PID!')
+
+    return pid;
+  },
 }

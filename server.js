@@ -24,7 +24,7 @@ function setupServer(philipsHueClient) {
   const auth = jwt({
     secret: process.env.JWT_SECRET,
     credentialsRequired: false
-  }); 
+  });
 
   kafkaService.onReady().then(() => {
     // graphql endpoint
@@ -98,7 +98,7 @@ function setupHUE(username) {
       });
     })
   }).catch(err => {
-    console.log(err)
+    console.log(err) 
   });
 }
 

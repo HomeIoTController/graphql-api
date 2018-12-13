@@ -26,4 +26,4 @@ RUN npm install && npm install -g mysql2 && npm install -g sequelize && npm inst
 COPY . /app
 
 # Set Entrypoint
-ENTRYPOINT chmod 777 ./wait-for-it.sh && ./wait-for-it.sh -t 40 graphql-db:3306 && sequelize db:migrate && npm run start
+ENTRYPOINT chmod 777 ./wait-for-it.sh && ./wait-for-it.sh -t 120 graphql-db:3306 && sequelize db:migrate && npm run start
