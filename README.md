@@ -1,46 +1,12 @@
-# Light Control - GraphQL API
+# Homer Controller - GraphQL API
 
- This GraphQL API supports authentication with JWT and does IoT device management
+This application is the main hub that connects with all available client applications: [audio-client](https://github.com/HomeIoTController/audio-client), [eeg-brainwave-client](https://github.com/HomeIoTController/eeg-brainwave-client) and [web-client](https://github.com/HomeIoTController/web-client) and enables commands to be processed. Having said that, this API mainly enables user registration, saving commands and running commands. Also, this GraphQL API connects with [eeg-brainwave-api](https://github.com/HomeIoTController/eeg-brainwave-api) through a Kafka Queue enabling brainwave data to be stored and classified.
+
+Currently, commands are being processed and dispatched to a Philips HUE central hub, but this could be expanded to any IoT device.
 
 ## Getting Started
 
-* Clone the project repository by running the command below if you use HTTPS
-
-```bash
-git clone https://github.com/PhilipsHUEController/graphql-api.git
-```
-
-* After cloning, run:
-
-```bash
-cd Project/api
-npm install
-```
-
-* Rename `.env.example` to `.env` then fill in your database detail and your JWT secret:
-
-```txt
-NODE_ENV=development
-DB_HOST=db
-DB_USERNAME=adaptive_user
-DB_PASSWORD=adaptive_pw
-DB_NAME=adaptive_db
-JWT_SECRET=adaptive_software_jwt
-```
-
-* Then run the migration:
-
-```bash
-sequelize db:migrate
-```
-
-* And finally, start the application:
-
-```bash
-npm start
-```
-
-* The server will be running on [http://localhost:3000/api](http://localhost:3000/api).
+* To run this api just follow the steps on [compose](https://github.com/HomeIoTController/compose)
 
 ## How to create a new DB entity
 
