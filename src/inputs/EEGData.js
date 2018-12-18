@@ -11,5 +11,5 @@ input EEGData {
   attention: Int!
   meditation: Int!
   blink: Int!
-  feelingLabel: String
+  state: String
 }`;

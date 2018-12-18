@@ -1,7 +1,9 @@
 const kafka = require('kafka-node')
+const axios = require('axios')
 const { User, Command, PID } = require('../../models')
 
 const { getKafkaServiceInstance } = require('../kafkaService');
+const config = require('../config')
 
 module.exports = {
   // fetch the commands of currenly athenticated user
@@ -18,7 +20,7 @@ module.exports = {
   },
 
   async states(user) {
-    // call with axios userStates/get/user.id
+    return (await axios.get(`${config.eegAPI}/user/${user.id}/states`)).data.map(data => data.state);
   },
 
   async latestEEGClassification(user, _) {

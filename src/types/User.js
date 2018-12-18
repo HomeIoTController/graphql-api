@@ -7,6 +7,6 @@ type User {
   commands: [Command]
   latestEEGClassification: EEGClassification
   pid: PID!
-  states: [String]
+  states: [String]!
 }
 `;

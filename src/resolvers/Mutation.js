@@ -6,6 +6,7 @@ const axios = require('axios')
 const { User, PID, Command, CommandHistory } = require('../../models')
 const { getKafkaServiceInstance } = require('../kafkaService');
 const { getPIDControllerInstance } = require('../PIDController');
+const config = require('../config')
 
 module.exports =  {
   // Handle user signup
@@ -90,8 +91,8 @@ module.exports =  {
       async sendEEGData({ data: eegData }) {
         eegData.userId = user.id;
 
-        if (!eegData.feelingLabel || eegData.feelingLabel === "") {
-          eegData.feelingLabel = "?"
+        if (!eegData.state || eegData.state === "") {
+          eegData.state = "?"
         }
 
         const message = JSON.stringify(eegData);
@@ -109,8 +110,8 @@ module.exports =  {
         }));
       },
 
-      async updateStates(data) {
-        // Call axios /userStats/update
+      async updateStates({ states }) {
+        return (await axios.post(`${config.eegAPI}/user/${user.id}/states`, states)).data;
       },
 
       async updateCommands ({ froms, tos, types, valuesFrom, valuesTo, listenerCommand }) {
@@ -162,11 +163,11 @@ module.exports =  {
         });
       },
 
+      /* Not in use by any app */
+      /* Classification is being supplied by a Kafka topic right now */
       async classifyEEGData({ data: eegData }) {
         eegData.userId = user.id;
-
-        const eegAPI = `http://${process.env.EEG_API}:${process.env.EEG_API_PORT}`;
-        return (await axios.post(`${eegAPI}/eeg/classify`, eegData)).data;
+        return (await axios.post(`${config.eegAPI}/eeg/classify`, eegData)).data;
       },
 
       async sendCommand ({ fromCommand, type, valueFrom, valueTo }, { philipsHueClient }) {
