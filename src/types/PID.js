@@ -7,5 +7,6 @@ type PID {
   k: Float!
   setpoint: Float!
   timeInterval: Int!
+  active: Boolean!
 }
 `;

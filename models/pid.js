@@ -7,7 +7,8 @@ module.exports = (sequelize, DataTypes) => {
     kd: DataTypes.DOUBLE,
     k: DataTypes.DOUBLE,
     setpoint: DataTypes.DOUBLE,
-    timeInterval: DataTypes.INTEGER
+    timeInterval: DataTypes.INTEGER,
+    active: DataTypes.BOOLEAN,
   }, {});
   PID.associate = function(models) {
     // associations can be defined here

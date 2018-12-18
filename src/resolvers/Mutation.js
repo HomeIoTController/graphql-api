@@ -29,7 +29,8 @@ module.exports =  {
       kd: 1,
       k: 0,
       setpoint: 50, // 50% light
-      timeInterval: 60 // 60 seconds
+      timeInterval: 60, // 60 seconds
+      active: false
     });
 
     // Return json web token
@@ -68,14 +69,15 @@ module.exports =  {
       throw new Error('You are not authenticated!')
     }
     return  {
-      async updatePID({ kp, ki, kd, k, setpoint, timeInterval }) {
+      async updatePID({ kp, ki, kd, k, setpoint, timeInterval, active }) {
         const pid = await PID.update({
           kp,
           ki,
           kd,
           k,
           setpoint,
-          timeInterval
+          timeInterval,
+          active
         },
         {
           where: {
@@ -105,6 +107,10 @@ module.exports =  {
             else resolve("Saved!")
           });
         }));
+      },
+
+      async updateStates(data) {
+        // Call axios /userStats/update
       },
 
       async updateCommands ({ froms, tos, types, valuesFrom, valuesTo, listenerCommand }) {
@@ -184,33 +190,38 @@ module.exports =  {
         const now = new Date()
 
         const pidParameters = await PID.findOne({
-          where: { userId: user.id }
-        });
-        if (!pidParameters) throw new Error('Failed to find PID parameters!')
-
-        const commandsHistory = await CommandHistory.findAll({
-            where: {
-                userId: user.id,
-                createdAt: {
-                    $gte: moment(now).subtract(pidParameters.timeInterval, "seconds").toDate(),
-                    $lte: now
-                }
-            },
-            order: [
-              ['createdAt', 'DESC'],
-            ]
+          where: {
+            userId: user.id,
+            active: true
+          }
         });
 
-        let balancedCommand = command.to;
-        if (commandsHistory.length > 0) {
-          const PIDController = getPIDControllerInstance();
-          balancedCommand = PIDController.getBalancedCommand(command, commandsHistory, pidParameters.dataValues);
+        // Use PID to balance commands
+        if (pidParameters) {
+          const commandsHistory = await CommandHistory.findAll({
+              where: {
+                  userId: user.id,
+                  createdAt: {
+                      $gte: moment(now).subtract(pidParameters.timeInterval, "seconds").toDate(),
+                      $lte: now
+                  }
+              },
+              order: [
+                ['createdAt', 'DESC'],
+              ]
+          });
+
+          if (commandsHistory.length > 0) {
+            command.to = getPIDControllerInstance()
+            .getBalancedCommand(command, commandsHistory, pidParameters.dataValues);
+          }
         }
+
 
         await CommandHistory.create({
           userId: user.id,
           from: command.from,
-          to: balancedCommand
+          to: command.to
         });
 
         await Promise.all(lights.map(async (light) => {
