@@ -226,9 +226,8 @@ module.exports =  {
         });
 
         await Promise.all(lights.map(async (light) => {
-          // console.log("light: ", light)
-          //eval(balancedCommand)
-          //await philipsHueClient.lights.save(light);
+          eval(command.to)
+          await philipsHueClient.lights.save(light);
         }));
 
         return "Command executed!";

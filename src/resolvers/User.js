@@ -61,12 +61,14 @@ module.exports = {
           const consumer = new kafka.Consumer(kafkaClient, topics, options);
 
           consumer.on('message', (message) => {
+            console.log("MESSAGE: ", message)
             consumer.close(true, () => {
               resolve(JSON.parse(message.value));
             });
           });
 
           consumer.on('error', (err) => {
+            console.log("ERROR: ", err)
             consumer.close(true, () => {
               reject(err);
             });
