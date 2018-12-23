@@ -35,7 +35,7 @@ class KafkaService {
   }
 
   createClient() {
-    const kafkaServer = process.env.KAFKA_SERVER ? process.env.KAFKA_SERVER : 'kafka-server';
+    const kafkaServer = process.env.KAFKA_BROKER ? process.env.KAFKA_BROKER : 'kafka-broker';
     const kafkaPort = process.env.KAFKA_PORT ? process.env.KAFKA_PORT : '9092';
 
     return new kafka.KafkaClient({
