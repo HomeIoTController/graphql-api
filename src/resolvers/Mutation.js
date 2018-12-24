@@ -214,7 +214,7 @@ module.exports =  {
 
           if (commandsHistory.length > 0) {
             command.to = getPIDControllerInstance()
-            .getBalancedCommand(command, commandsHistory, pidParameters.dataValues);
+            .getBalancedCommand(lights[0], command, commandsHistory, pidParameters.dataValues);
           }
         }
 

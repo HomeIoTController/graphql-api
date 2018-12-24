@@ -2,7 +2,7 @@ let pidControllerInstance = null
 
 class PIDController {
 
-  getBalancedCommand(command, commandsHistory, pidParameters) {
+  getBalancedCommand(light, command, commandsHistory, pidParameters) {
 
     // 1) Parse commands to Map
     const commandsMap = {};
@@ -54,28 +54,59 @@ class PIDController {
 
     let balancedCommands = "";
 
-    console.log("commandsMap: ", commandsMap)
-
     Object.keys(commandsMap).forEach(command => {
       const commandValues = commandsMap[command];
 
-      console.log("commandValues: ", commandValues);
+      let desired_brightness = commandValues.shift()
+
+      let initialLightState = light.brightness;
+
+      commandValues.forEach(commandValue => {
+        if (commandValue > 0) initialLightState -= commandValue
+        else initialLightState += Math.abs(commandValue)
+      })
 
       const T = timeInterval;
-      const y = commandValues.shift(); // gets the current command that will be emitted
-      const u = commandValues // gets all the commands without the current desired one
+      const process_variable = light.brightness + desired_brightness // PV is the current level of brightness of the light bulb
+      const u = commandValues.slice(0).reverse().map(commandValue =>  {
+        initialLightState += commandValue
+        return initialLightState;
+      })
+      const prev_process_variable = u.length > 0 ? u[0] : 0;
 
-      const e_t = this.e(setpoint, y);
-      const u_t = (Kp * e_t) + (Ki * (e_t + u.reduce(this.add, 0))) + (Kd * (e_t - this.e(setpoint, y))/T);
-      let balancedCommandValue = y + (K * u_t);
+      console.log("process_variable: ", process_variable);
+      console.log("u: ", u);
+      console.log("setpoint: ", setpoint);
+      console.log("T: ", T);
 
-      console.log("balancedCommandValue: ", balancedCommandValue)
+      const e_t = this.e(setpoint, process_variable);
+
+      console.log("e_t: ", e_t);
+
+      const output_proportional_controller = Kp * e_t
+      const output_integral_controller = Ki * (e_t + u.reduce(this.add, 0))
+      const output_derivative_controller = Kd * ((e_t - this.e(setpoint, prev_process_variable)) / T)
+
+      console.log("output_proportional_controller: ", output_proportional_controller);
+      console.log("output_integral_controller: ", output_integral_controller);
+      console.log("output_derivative_controller: ", output_derivative_controller);
+
+      const u_t = output_proportional_controller + output_integral_controller + output_derivative_controller;
+      let balancedCommandValue = Math.round(K * u_t);
 
       // Cast command back to its original format
       if (commandType[command] === Boolean)
         balancedCommandValue = Boolean(balancedCommandValue);
-      else
+      else {
         balancedCommandValue = Number(balancedCommandValue).toFixed(2);
+        if (balancedCommandValue > 0) {
+          balancedCommandValue = Math.abs(desired_brightness).toFixed(2);
+        }
+      }
+
+      console.log("balancedCommandValue: ", balancedCommandValue)
+
+
 
       balancedCommands = balancedCommands + command + "=" + balancedCommandValue + ";"
     });
@@ -89,12 +120,6 @@ class PIDController {
 
   add(a, b) {
     return a + b;
-  }
-
-  calculateCommands(command, commandsMap, pidParameters) {
-
-    console.log("balancedCommands: ", balancedCommands)
-    return balancedCommands;
   }
 
   clearCommand(command) {
