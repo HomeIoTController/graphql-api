@@ -155,24 +155,28 @@ module.exports =  {
 
         const philipsHueService = getPhilipsHueServiceInstance();
 
-        const philipsHueConfig = await philipsHueService.connectToRemoteHUE(
-          philipsHueIp,
-          philipsHuePort,
-          philipsHueUsername
-        );
+        // We will only test Philips Hue Ip and Port in case we are using
+        // the remote mode
+        if (philipsHueService.localMode === false) {
+          const philipsHueConfig = await philipsHueService.connectToRemoteHUE(
+            philipsHueIp,
+            philipsHuePort,
+            philipsHueUsername
+          );
 
-        await PhilipsHUEConfig.update(
-          {
-            ip: philipsHueConfig.ip,
-            port: philipsHueConfig.port,
-            username: philipsHueConfig.username
-          },
-          {
-            where: {
-              id: user.id
+          await PhilipsHUEConfig.update(
+            {
+              ip: philipsHueConfig.ip,
+              port: philipsHueConfig.port,
+              username: philipsHueConfig.username
+            },
+            {
+              where: {
+                id: user.id
+              }
             }
-          }
-        );
+          );
+        }
 
         await User.update(
           {

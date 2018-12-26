@@ -10,6 +10,7 @@ class PhilipsHueService extends BaseService {
   }
 
   async setup() {
+    this.localMode = false;
     if (process.env.HUE_LOCAL_DEVICE_SETUP === 'true') {
       this.localMode = true;
       this.baseUsername = process.env.HUE_USER;
