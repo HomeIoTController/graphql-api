@@ -1,8 +1,8 @@
 const kafka = require('kafka-node')
 const axios = require('axios')
-const { User, Command, PID } = require('../../models')
+const { User, Command, PID, PhilipsHUEConfig } = require('../../models')
 
-const { getKafkaServiceInstance } = require('../kafkaService');
+const { getKafkaServiceInstance } = require('../services/kafkaService');
 const config = require('../config')
 
 module.exports = {
@@ -61,14 +61,12 @@ module.exports = {
           const consumer = new kafka.Consumer(kafkaClient, topics, options);
 
           consumer.on('message', (message) => {
-            console.log("MESSAGE: ", message)
             consumer.close(true, () => {
               resolve(JSON.parse(message.value));
             });
           });
 
           consumer.on('error', (err) => {
-            console.log("ERROR: ", err)
             consumer.close(true, () => {
               reject(err);
             });
@@ -89,5 +87,17 @@ module.exports = {
     if (!pid) throw new Error('Failed to find PID!')
 
     return pid;
+  },
+
+  async philipsHueConfig(user) {
+    const philipsHueConfig = await PhilipsHUEConfig.findOne({
+      where: {
+        userId: user.id
+      }
+    });
+
+    if (!philipsHueConfig) throw new Error('Failed to find Philips Hue Config!')
+
+    return philipsHueConfig;
   },
 }

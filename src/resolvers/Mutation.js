@@ -3,9 +3,10 @@ const jsonwebtoken = require('jsonwebtoken')
 const moment = require('moment')
 const axios = require('axios')
 
-const { User, PID, Command, CommandHistory } = require('../../models')
-const { getKafkaServiceInstance } = require('../kafkaService');
-const { getPIDControllerInstance } = require('../PIDController');
+const { User, PID, PhilipsHUEConfig, Command, CommandHistory } = require('../../models')
+const { getKafkaServiceInstance } = require('../services/kafkaService');
+const { getPhilipsHueServiceInstance } = require('../services/philipsHueService');
+const { getPIDServiceInstance } = require('../services/pidService');
 const config = require('../config')
 
 module.exports =  {
@@ -32,6 +33,13 @@ module.exports =  {
       setpoint: 50, // 50% light
       timeInterval: 60, // 60 seconds
       active: false
+    });
+
+    await PhilipsHUEConfig.create({
+      userId: user.id,
+      ip: "",
+      port: "",
+      username: null
     });
 
     // Return json web token
@@ -114,7 +122,7 @@ module.exports =  {
         return (await axios.post(`${config.eegAPI}/user/${user.id}/states`, states)).data;
       },
 
-      async updateCommands ({ froms, tos, types, valuesFrom, valuesTo, listenerCommand }) {
+      async updateCommands ({ froms, tos, types, valuesFrom, valuesTo, listenerCommand, philipsHueIp, philipsHuePort, philipsHueUsername }) {
         if (froms.length !== tos.length ||
             froms.length !== types.length ||
             froms.length !== valuesFrom.length ||
@@ -145,6 +153,27 @@ module.exports =  {
           });
         }
 
+        const philipsHueService = getPhilipsHueServiceInstance();
+
+        const philipsHueConfig = await philipsHueService.connectToRemoteHUE(
+          philipsHueIp,
+          philipsHuePort,
+          philipsHueUsername
+        );
+
+        await PhilipsHUEConfig.update(
+          {
+            ip: philipsHueConfig.ip,
+            port: philipsHueConfig.port,
+            username: philipsHueConfig.username
+          },
+          {
+            where: {
+              id: user.id
+            }
+          }
+        );
+
         await User.update(
           {
             listenerCommand
@@ -170,9 +199,32 @@ module.exports =  {
         return (await axios.post(`${config.eegAPI}/eeg/classify`, eegData)).data;
       },
 
-      async sendCommand ({ fromCommand, type, valueFrom, valueTo }, { philipsHueClient }) {
-        if (!philipsHueClient || !philipsHueClient.lights){
-          throw new Error('Philips Hue not connected!')
+      async sendCommand ({ fromCommand, type, valueFrom, valueTo }) {
+
+        const philipsHueService = getPhilipsHueServiceInstance();
+        let philipsHueClient;
+
+        // API setup in the same network as Philips Hub
+        if (philipsHueService.localMode) {
+          philipsHueClient = philipsHueService.client;
+        // API in a different network
+        } else {
+          try {
+            const philipsHueConfig = await PhilipsHUEConfig.findOne({
+              where: {
+                userId: user.id,
+              }
+            });
+
+            philipsHueClient =
+            (await philipsHueService.connectToRemoteHUE(
+              philipsHueConfig.ip,
+              philipsHueConfig.port,
+              philipsHueConfig.username
+            )).client;
+          } catch(error) {
+            throw new Error("Unable to connect to Philips Hue with IP: ", user.philipsHueIp + ":" + user.philipsHuePort + "\n" + error);
+          }
         }
 
         const lights = await philipsHueClient.lights.getAll();

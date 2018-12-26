@@ -1,6 +1,16 @@
+const BaseService = require('./baseService');
+
 let pidControllerInstance = null
 
-class PIDController {
+class PIDService extends BaseService {
+
+  constructor() {
+    super();
+  }
+
+  setup() {
+    console.log("Setup complete")
+  }
 
   getBalancedCommand(light, command, commandsHistory, pidParameters) {
 
@@ -106,16 +116,13 @@ class PIDController {
 
       console.log("balancedCommandValue: ", balancedCommandValue)
 
-
-
       balancedCommands = balancedCommands + command + "=" + balancedCommandValue + ";"
     });
     return balancedCommands;
-
   }
 
   e(setpoint, process_variable) {
-      return setpoint - process_variable
+    return setpoint - process_variable
   }
 
   add(a, b) {
@@ -128,15 +135,13 @@ class PIDController {
       .split(";") // Find all commands in line
       .filter(command => command !== '') // Remove empty commands
   }
-
-
 }
 
 module.exports = {
-  getPIDControllerInstance: () => {
-    if (!pidControllerInstance) {
-      pidControllerInstance = new PIDController()
+  getPIDServiceInstance: () => {
+    if (!pidServiceInstance) {
+      pidServiceInstance = new PIDService()
     }
-    return pidControllerInstance
+    return pidServiceInstance
   }
 }

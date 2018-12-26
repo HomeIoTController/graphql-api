@@ -7,6 +7,7 @@ type User {
   commands: [Command]
   latestEEGClassification: EEGClassification
   pid: PID!
+  philipsHueConfig: PhilipsHUEConfig!
   states: [String]!
 }
 `;

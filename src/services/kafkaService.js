@@ -1,37 +1,27 @@
 const kafka = require('kafka-node')
+const BaseService = require('./baseService');
 
 let kafkaServiceInstance = null
 
-class KafkaService {
+class KafkaService extends BaseService {
 
   constructor() {
+    super();
+  }
+
+  setup() {
     this.client = this.createClient();
     this.producer = new kafka.Producer(this.client)
 
-    this.client.on('ready', () => {
-      console.log('Kafka client is connected and ready!')
-      this.isReady = true
-    })
-    this.isReady = false
+    return new Promise((resolve, reject) => {
+      this.client.on('ready', () => {
+        resolve('Kafka client is connected and ready!')
+      })
 
-    this.client.on('error', (error) => {
-      console.log('Kafka client failed to connect!')
-      console.error(error)
-    })
-  }
-
-  async onReady() {
-    return await (new Promise((resolve, reject) => {
-      const run = () => {
-        return this.sleep(100).then(() => {
-          if (!this.isReady) {
-            return run();
-          }
-          return resolve(true);
-        })
-      }
-      return run();
-    }));
+      this.client.on('error', (error) => {
+        reject('Kafka client failed to connect!');
+      })
+    });
   }
 
   createClient() {
@@ -43,16 +33,14 @@ class KafkaService {
       autoConnect: true
     });
   }
-
-  sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
 }
 
 module.exports = {
   getKafkaServiceInstance: () => {
     if (!kafkaServiceInstance) {
+      console.log("Started Kafka config!")
       kafkaServiceInstance = new KafkaService()
+      return kafkaServiceInstance.setup();
     }
     return kafkaServiceInstance
   }
