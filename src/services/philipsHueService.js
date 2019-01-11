@@ -102,16 +102,16 @@ class PhilipsHueService extends BaseService {
         throw new Error("Connection error with Philips Bridge!\n"+error);
       }
     } catch(error) {
-      if (error.type === undefined) throw error;
+      //if (error.type === undefined) throw error;
       let user;
       try {
         user = await client.users.create(new client.users.User);
         console.log(`New user created - Username: ${user.username}`);
-        return await this.setup(user.username);
+        return await this.setupLocal(user.username);
       } catch(error) {
         if (error.type === 101) {
           console.log(`Link button not pressed. Try again...`);
-          return await this.setup(this.baseUsername);
+          return await this.setupLocal(this.baseUsername);
         }
         throw error;
       }
